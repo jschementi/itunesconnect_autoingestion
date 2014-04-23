@@ -1,0 +1,65 @@
+#!/bin/bash
+
+rm S_M_85707799_201306*
+rm S_M_85707799_201307*
+rm S_M_85707799_201308*
+rm S_M_85707799_201309*
+rm S_M_85707799_201310*
+rm S_M_85707799_201311*
+rm S_M_85707799_201312*
+rm S_M_85707799_201401*
+rm S_M_85707799_201402*
+rm S_M_85707799_201403*
+rm S_W_85707799_20140330*
+rm S_W_85707799_20140406*
+rm S_W_85707799_20140413*
+rm S_W_85707799_20140420*
+# rm S_M_85707799_201404*
+
+(echo "Monthly" && echo "201306") | ruby autoingestion.rb
+(echo "Monthly" && echo "201307") | ruby autoingestion.rb
+(echo "Monthly" && echo "201308") | ruby autoingestion.rb
+(echo "Monthly" && echo "201309") | ruby autoingestion.rb
+(echo "Monthly" && echo "201310") | ruby autoingestion.rb
+(echo "Monthly" && echo "201311") | ruby autoingestion.rb
+(echo "Monthly" && echo "201312") | ruby autoingestion.rb
+(echo "Monthly" && echo "201401") | ruby autoingestion.rb
+(echo "Monthly" && echo "201402") | ruby autoingestion.rb
+(echo "Monthly" && echo "201403") | ruby autoingestion.rb
+(echo "Weekly" && echo "20140330") | ruby autoingestion.rb
+(echo "Weekly" && echo "20140406") | ruby autoingestion.rb
+(echo "Weekly" && echo "20140413") | ruby autoingestion.rb
+(echo "Weekly" && echo "20140420") | ruby autoingestion.rb
+#(echo "Monthly" && echo "201403") | ruby autoingestion.rb
+
+ruby tsvtocsv.rb S_M_85707799_201306.txt > ios.csv
+ruby tsvtocsv.rb S_M_85707799_201307.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201308.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201309.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201310.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201311.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201312.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201401.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201402.txt >> ios.csv
+ruby tsvtocsv.rb S_M_85707799_201403.txt >> ios.csv
+ruby tsvtocsv.rb S_W_85707799_20140330.txt >> ios.csv
+ruby tsvtocsv.rb S_W_85707799_20140406.txt >> ios.csv
+ruby tsvtocsv.rb S_W_85707799_20140413.txt >> ios.csv
+ruby tsvtocsv.rb S_W_85707799_20140420.txt >> ios.csv
+# ruby tsvtocsv.rb S_M_85707799_201404.txt >> ios.csv
+
+rm S_M_85707799_201306*
+rm S_M_85707799_201307*
+rm S_M_85707799_201308*
+rm S_M_85707799_201309*
+rm S_M_85707799_201310*
+rm S_M_85707799_201311*
+rm S_M_85707799_201312*
+rm S_M_85707799_201401*
+rm S_M_85707799_201402*
+rm S_M_85707799_201403*
+rm S_W_85707799_20140330*
+rm S_W_85707799_20140406*
+rm S_W_85707799_20140413*
+rm S_W_85707799_20140420*
+# rm S_M_85707799_201404*
