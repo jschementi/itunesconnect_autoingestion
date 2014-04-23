@@ -7,7 +7,7 @@ def main
   puts "Downloading all reports.."
   (1..14).each do | days_ago |
     date = (Time.new - 24*60*60 * days_ago).strftime("%Y%m%d")
-    system("ruby autoingestion.rb report_date=#{date}")
+    system("(echo \"Daily\" && echo \"#{date}\") | ruby autoingestion.rb")
   end
 
   system("ruby tsvtohtml.rb `ls *txt` > report.html")
