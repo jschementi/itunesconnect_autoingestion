@@ -1,4 +1,4 @@
-require 'util/http_verify_none.rb'
+require './util/http_verify_none.rb'
 require 'net/https'
 require 'uri'
 require 'cgi'
@@ -7,32 +7,43 @@ def main
   autoingestor = Autoingestion.new
   yesterday = (Time.new - 24*60*60).strftime("%Y%m%d")
 
-  if File.exists?("config.hash")
-    config = eval(File.new("config.hash").read())
-    autoingestor.username = config["username"]
-    autoingestor.password = config["password"]
-    autoingestor.vendor_number = config["vendor_number"]
+  config = if File.exists?("config.hash")
+    eval(File.new("config.hash").read())
   else
-    print "iTunes Connect email address:             "
-    autoingestor.username = gets.strip!
-    print "iTunes Connect password:                  "
-    autoingestor.password = gets.strip!
-    print "Vendor number:                            "
-    autoingestor.vendor_number = gets.strip!
-    print "Type of report:                [Sales]    "
-    autoingestor.type_of_report = gets.strip!
-    print "Date type:                     [Daily]    "
-    autoingestor.date_type = gets.strip!
-    print "Report type:                   [Summary]  "
-    autoingestor.report_type = gets.strip!
-    print "Report date:                   [#{yesterday}] "
-    autoingestor.report_date = gets.strip!
+    {}
   end
-
-  autoingestor.type_of_report = "Sales"   if autoingestor.type_of_report.empty?
-  autoingestor.date_type      = "Daily"   if autoingestor.date_type.empty?
-  autoingestor.report_type    = "Summary" if autoingestor.report_type.empty?
-  autoingestor.report_date    = yesterday if autoingestor.report_date.empty?
+  autoingestor.username = config["username"] || begin
+    print "iTunes Connect email address:             "
+    gets.strip!
+  end
+  autoingestor.password = config["password"] || begin
+    print "iTunes Connect password:                  "
+    gets.strip!
+  end
+  autoingestor.vendor_number = config["vendor_number"] || begin
+    print "Vendor number:                            "
+    gets.strip!
+  end
+  autoingestor.type_of_report = config['type_of_report'] || begin
+    print "Type of report:                [Sales]    "
+    gets.strip!
+  end || 'Sales'
+  autoingestor.date_type = config['date_type'] || begin
+    print "Date type:                     [Daily]    "
+    a = gets.strip!
+    puts a
+    a
+  end || 'Daily'
+  autoingestor.report_type = config['report_type'] || begin
+    print "Report type:                   [Summary]  "
+    gets.strip!
+  end || 'Summary'
+  autoingestor.report_date = config['report_date'] || begin
+    print "Report date:                   [#{yesterday}] "
+    a = gets.strip!
+    puts a
+    a
+  end || yesterday
 
   autoingestor.perform_request
 end
