@@ -4,6 +4,7 @@ javadoc
 .*swp
 *txt.gz
 *txt
+*csv
 *html
 config.hash
 
