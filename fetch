@@ -1,65 +1,92 @@
-#!/bin/bash
+#!/usr/bin/env ruby
 
-rm S_M_85707799_201306*
-rm S_M_85707799_201307*
-rm S_M_85707799_201308*
-rm S_M_85707799_201309*
-rm S_M_85707799_201310*
-rm S_M_85707799_201311*
-rm S_M_85707799_201312*
-rm S_M_85707799_201401*
-rm S_M_85707799_201402*
-rm S_M_85707799_201403*
-rm S_W_85707799_20140330*
-rm S_W_85707799_20140406*
-rm S_W_85707799_20140413*
-rm S_W_85707799_20140420*
-# rm S_M_85707799_201404*
+require 'date'
 
-(echo "Monthly" && echo "201306") | ruby autoingestion.rb
-(echo "Monthly" && echo "201307") | ruby autoingestion.rb
-(echo "Monthly" && echo "201308") | ruby autoingestion.rb
-(echo "Monthly" && echo "201309") | ruby autoingestion.rb
-(echo "Monthly" && echo "201310") | ruby autoingestion.rb
-(echo "Monthly" && echo "201311") | ruby autoingestion.rb
-(echo "Monthly" && echo "201312") | ruby autoingestion.rb
-(echo "Monthly" && echo "201401") | ruby autoingestion.rb
-(echo "Monthly" && echo "201402") | ruby autoingestion.rb
-(echo "Monthly" && echo "201403") | ruby autoingestion.rb
-(echo "Weekly" && echo "20140330") | ruby autoingestion.rb
-(echo "Weekly" && echo "20140406") | ruby autoingestion.rb
-(echo "Weekly" && echo "20140413") | ruby autoingestion.rb
-(echo "Weekly" && echo "20140420") | ruby autoingestion.rb
-#(echo "Monthly" && echo "201403") | ruby autoingestion.rb
+$config = if File.exists?("config.hash")
+  eval(File.new("config.hash").read())
+else
+  {}
+end
 
-ruby tsvtocsv.rb S_M_85707799_201306.txt > ios.csv
-ruby tsvtocsv.rb S_M_85707799_201307.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201308.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201309.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201310.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201311.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201312.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201401.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201402.txt >> ios.csv
-ruby tsvtocsv.rb S_M_85707799_201403.txt >> ios.csv
-ruby tsvtocsv.rb S_W_85707799_20140330.txt >> ios.csv
-ruby tsvtocsv.rb S_W_85707799_20140406.txt >> ios.csv
-ruby tsvtocsv.rb S_W_85707799_20140413.txt >> ios.csv
-ruby tsvtocsv.rb S_W_85707799_20140420.txt >> ios.csv
-# ruby tsvtocsv.rb S_M_85707799_201404.txt >> ios.csv
+def get_prefix(date_type, formatted_date)
+  "S_#{date_type[0..0]}_#{$config['vendor_number']}_#{formatted_date}"
+end
 
-rm S_M_85707799_201306*
-rm S_M_85707799_201307*
-rm S_M_85707799_201308*
-rm S_M_85707799_201309*
-rm S_M_85707799_201310*
-rm S_M_85707799_201311*
-rm S_M_85707799_201312*
-rm S_M_85707799_201401*
-rm S_M_85707799_201402*
-rm S_M_85707799_201403*
-rm S_W_85707799_20140330*
-rm S_W_85707799_20140406*
-rm S_W_85707799_20140413*
-rm S_W_85707799_20140420*
-# rm S_M_85707799_201404*
+def format_date(date)
+  date.strftime("%Y%m%d")
+end
+
+def beginning_of_month(date)
+  Date.new(date.year, date.month)
+end
+
+def beginning_of_week(date)
+  date - date.wday
+end
+
+$today = Date.today
+$beginning_of_this_month = beginning_of_month($today)
+$beginning_of_this_week = beginning_of_week($today)
+$days_in_week = Date::DAYNAMES.length
+$start_date = $config['start_date']
+$start_weekly_report_date = $beginning_of_this_week - (25*$days_in_week) # Only can go back 26 weeks for weekly reports
+$start_daily_reports_date = $today - 30 # Only can go back 30 days for daily reports
+
+def get_days
+  current_date = $start_daily_reports_date
+  days = []
+  while current_date < $today
+    days << current_date.strftime("%Y%m%d")
+    current_date = current_date + 1
+  end
+  days
+end
+
+def get_weeks
+  current_date = $start_weekly_report_date
+  weeks = []
+  while current_date < $beginning_of_this_week
+    weeks << current_date.strftime("%Y%m%d")
+    current_date = current_date + $days_in_week
+  end
+  weeks
+end
+
+def get_months
+  current_date = beginning_of_month($start_date)
+  months = []
+  while current_date < $beginning_of_this_month
+    months << current_date.strftime("%Y%m")
+    current_date = current_date >> 1
+  end
+  months
+end
+
+$time_slices = {
+  'Monthly' => get_months,
+  'Weekly' => get_weeks,
+  'Daily' => get_days
+}
+
+$time_slices.each do |interval_name, intervals|
+
+  csv_filename = "ios_#{interval_name}-#{intervals[0]}-#{intervals[-1]}.csv"
+  csv_data = []
+  header = ''
+  intervals.each do |interval|
+    filename = get_prefix(interval_name, interval)
+    `rm -f #{filename}*`
+    cmd = "(echo #{interval_name} && echo #{interval}) | ruby autoingestion.rb"
+    puts cmd
+    `#{cmd}`
+    this_csv_data = `ruby tsvtocsv.rb #{filename}.txt`
+    header = this_csv_data.split("\n")[0..0]
+    this_csv_data = this_csv_data.split("\n")[1..-1]
+    puts this_csv_data
+    csv_data << this_csv_data
+    `rm -f #{filename}*`
+  end
+
+  File.write(csv_filename, [header].concat(csv_data).join("\n"))
+end
+
